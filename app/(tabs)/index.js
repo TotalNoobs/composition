@@ -4,12 +4,12 @@ import { HelloWave } from '@/components/AnimatedLogo';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import CameraScreen from '@/components/CameraScreen';
+import EditScreen from '@/app/EditScreen';
+import MapScreen from '@/app/MapScreen';
 
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-
-import CameraScreen from '@/components/CameraScreen';
-
 
 
 function HomeScreen({navigation}) {
@@ -36,6 +36,8 @@ const Stack = () => (
         options={{title: 'Home'}}
       />
       <RootStack.Screen name="Camera" component={CameraScreen} />
+      <RootStack.Screen name="EditScreen" component={EditScreen} />
+      <RootStack.Screen name="MapScreen" component={MapScreen} />
     </RootStack.Navigator>
 );
 

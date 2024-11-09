@@ -38,8 +38,7 @@ export default function CameraScreen({navigation}) {
     // Take a photo using the camera.
     console.log('Taking photo');
     const photo = await ref.current.takePictureAsync({quality:0});
-    console.log(photo);
-    navigation.navigate('Home', {photo});
+    navigation.navigate('EditScreen', {photo});
   }
 
   return (
