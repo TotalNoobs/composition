@@ -1,0 +1,12 @@
+yarn run v1.22.22
+$ expo start
+Starting project at /home/sharky/projects/junction/django-backend/frontend-react-native
+(node:22082) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+› Port 8081 is running this app in another window
+  /home/sharky/projects/junction/django-backend/frontend-react-native (pid 21767)
+Input is required, but 'npx expo' is in non-interactive mode.
+Required input:
+> Use port 8082 instead?
+› Skipping dev server
+Done in 0.56s.
