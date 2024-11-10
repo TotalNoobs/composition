@@ -1,11 +1,13 @@
-{% extends 'common/base.html' %}
-
-{% block content %}
+<div>
   {% comment %} <video autoplay="true" id="videoElement"></video> {% endcomment %}
-  <input id="photoElement" type="file" name="image" accept="image/*" capture="camera">
-  <button id="capture">Capture</button>
+  {% comment %} <input id="photoElement" type="file" name="image" accept="image/*" capture="camera" /> {% endcomment %}
+  {% comment %} <button id="capture">Capture</button> {% endcomment %}
   {% csrf_token %}
-
+  <form id="imageForm">
+    <input type="file" name="photo" accept="image/*" capture="camera" required />
+    <button type="button" id="capture" onclick="imageSubmit">Capture</button>
+    {% csrf_token %}
+  </form>
   <style>
     #videoElement {
       width: 80%;
@@ -13,15 +15,13 @@
   </style>
 
   <script>
-    function sendImage(imageData) {
-      const formData = new FormData()
-      formData.append('photo', imageData)
-      formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value)
-      console.log("IMG", imageData, formData)
-      // return
+    function imageSubmit() {
+      console.log('imageSubmit')
+      var form = document.querySelector('#imageForm')
+      var formData = new FormData(form)
       fetch('http://{{ request.get_host }}/imaging/upload', {
         method: 'POST',
-        body: formData,
+        body: formData
       })
         .then((response) => response.json())
         .then((data) => {
@@ -31,51 +31,19 @@
           alert(error)
         })
     }
+    document.getElementById('capture').addEventListener('click', function () {
+      let form = document.getElementById('imageForm')
+      for(const child in form.children) {
+        // check if value is not invalid using css selectors
+        if (child.tagName === 'INPUT' && child.value === '') {
+          console.log('Please select an image')
+          return
+        } else {
+          console.log(child)
+        }
 
-    function uploadPicture() {
-      alert('Uploading picture')
-      //var canvas = document.createElement('canvas')
-      //var video = document.querySelector('#videoElement')
-      //canvas.width = video.videoWidth
-      //canvas.height = video.videoHeight
-      //canvas.getContext('2d').drawImage(video, 0, 0)
-      //var image = canvas.toDataURL('image/png')
-      var pic = document.getElementById('photoElement').files[0]
-      console.log("PIC", pic)
-      //var image = pic.value
-
-      //console.log("IMAGE", image)
-      sendImage(pic)
-      // fetch(image)
-      //   .then((res) => res.blob())
-      //   .then((blob) => {
-      //     console.log(blob)
-      //     sendImage(blob)
-      //   })
-      //   .catch((error) => {
-      //     console.error('Error:', error)
-      //   })
-      // const fileBlob = await(fetch(data).then(r => r.blob()));
-    }
-
-    function initVideoCapture () {
-      document.getElementById('capture').addEventListener('click', uploadPicture, false)
-      var video = document.querySelector('#videoElement')
-
-      if (navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices
-          .getUserMedia({ video: true, audio: false })
-          .then(function (stream) {
-            video.srcObject = stream
-          })
-          .catch(function (error) {
-            alert('Something went wrong!')
-          })
       }
-    }
-    window.addEventListener('load', function() {
-      initVideoCapture()
+      imageSubmit();
     })
-
   </script>
-{% endblock %}
+</div>

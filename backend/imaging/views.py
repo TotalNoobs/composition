@@ -23,6 +23,13 @@ def index(request):
 def upload(request):
     print("UPLOAD")
     print(request)
+    respHeaders = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Max-Age": "86400",
+    }
+    return JsonResponse({ 'status': 'ok' }, headers=respHeaders)
     if request.method == "POST":
         for f in request.FILES:
             print(request.FILES[f])
@@ -41,11 +48,6 @@ def upload(request):
 
         # print(request.body)
         # print(request.FILES)
-    respHeaders = {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST",
-        "Access-Control-Allow-Headers": "Content-Type",
-        "Access-Control-Max-Age": "86400",
-    }
+
 
     return JsonResponse({ 'status': 'ok' }, headers=respHeaders)

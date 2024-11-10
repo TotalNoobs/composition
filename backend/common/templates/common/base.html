@@ -1,28 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Django App{% endblock %}</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+
+    <title>
+      {% block title %}
+        Django App
+      {% endblock %}
+    </title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
     <script src="https://unpkg.com/htmx.org@2.0.3" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
-</head>
-<body>
+    {% comment %} <link rel="stylesheet" href="https://unpkg.com/chota@latest" /> {% endcomment %}
+  </head>
+  <body>
     <header>
-        <h1>Django App</h1>
-        <nav>
-            <ul>
-                <li><a href="{% url 'index' %}">Home</a></li>
-                <li><a href="{% url 'imaging:index' %}">Imaging</a></li>
-            </ul>
-        </nav>
+      <nav>
+        <ul>
+          <li>
+            <strong>TotalNoobs</strong>
+          </li>
+        </ul>
+        <ul>
+          <li>
+            <a href="{% url 'index' %}">Home</a>
+          </li>
+        </ul>
+      </nav>
     </header>
     <main>
-        {% block content %}
-        {% endblock %}
+      {% block content %}
+
+      {% endblock %}
     </main>
-    <footer>
-        <p>&copy; 2021 Django App</p>
-    </footer>
-</body>
+  </body>
 </html>
