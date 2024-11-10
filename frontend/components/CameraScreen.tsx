@@ -2,7 +2,12 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function CameraScreen({navigation}) {
+import { Backend } from '@/constants/Backend';
+
+import axios from 'axios';
+// import http from 'http';
+
+export default function CameraScreen({ navigation }) {
   const [facing, setFacing] = useState<CameraType>('back');
   const [isCameraReady, setIsCameraReady] = useState<boolean>(false);
   const [permission, requestPermission] = useCameraPermissions();
@@ -10,11 +15,11 @@ export default function CameraScreen({navigation}) {
 
   const onCameraReady = () => {
     setIsCameraReady(true);
-     };
+  };
 
   if (!permission) {
     // Camera permissions are still loading.
-    return <View/>;
+    return <View />;
   }
 
   if (!permission.granted) {
@@ -32,28 +37,63 @@ export default function CameraScreen({navigation}) {
   }
 
   // cameraRef = useRef(null);
-  async function takePhoto() { 
+  async function takePhoto() {
     if (!isCameraReady) return;
 
     // Take a photo using the camera.
     console.log('Taking photo');
-    const photo = await ref.current.takePictureAsync({quality:0});
-    navigation.navigate('EditScreen', {photo});
+    const photo = await ref.current.takePictureAsync({ quality: 0 });
+
+    // Send photo to the server
+    console.log('Photo taken:', photo);
+
+    const fileBlob = await fetch(photo.uri).then(r => r.blob());
+    const data = new FormData();
+    data.append('photo', fileBlob);
+    console.log('FormData:', data);
+    console.log('Uploading photo to server', Backend.URL + "/imaging/upload");
+    try {
+      let res = await axios.post(
+        Backend.URL + "/imaging/upload",
+      );
+      console.log('Response:', res);
+      // let res = await fetch(
+      //   Backend.URL + "/imaging/upload",
+      //   {
+      //     method: 'post',
+      //     body: data,
+      //   }
+      // );
+      // if (!res.ok) {
+      //   return;
+      // }
+      // console.log('Response:', res);
+      // let responseJson = await res.json();
+      // console.log('Response JSON:', responseJson);
+      // if (responseJson.status == 1) {
+      //   console.log('Upload Successful');
+      // }
+      // navigation.navigate('EditScreen', { photo });
+    } catch (error) {
+      console.error('Error:', error);
+    }
+
+
   }
 
   return (
     <View style={styles.container}>
       <CameraView style={styles.camera}
-                  onCameraReady={onCameraReady} 
-                  facing={facing}
-                  ref={ref}>
+        onCameraReady={onCameraReady}
+        facing={facing}
+        ref={ref}>
         <View style={styles.buttonContainer}>
-        
-        <TouchableOpacity style={styles.button} onPress={takePhoto}>
+
+          <TouchableOpacity style={styles.button} onPress={takePhoto}>
             <Text style={styles.text}>Take photo</Text>
-        </TouchableOpacity>
-      
-         <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
             <Text style={styles.text}>Flip camera</Text>
           </TouchableOpacity>
         </View>
@@ -79,7 +119,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     backgroundColor: 'transparent',
-    alignContent : 'center',
+    alignContent: 'center',
     justifyContent: 'flex-end',
     // margin: 64,
   },

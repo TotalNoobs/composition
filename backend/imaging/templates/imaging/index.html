@@ -1,0 +1,81 @@
+{% extends 'common/base.html' %}
+
+{% block content %}
+  {% comment %} <video autoplay="true" id="videoElement"></video> {% endcomment %}
+  <input id="photoElement" type="file" name="image" accept="image/*" capture="camera">
+  <button id="capture">Capture</button>
+  {% csrf_token %}
+
+  <style>
+    #videoElement {
+      width: 80%;
+    }
+  </style>
+
+  <script>
+    function sendImage(imageData) {
+      const formData = new FormData()
+      formData.append('photo', imageData)
+      formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value)
+      console.log("IMG", imageData, formData)
+      // return
+      fetch('http://{{ request.get_host }}/imaging/upload', {
+        method: 'POST',
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data)
+        })
+        .catch((error) => {
+          alert(error)
+        })
+    }
+
+    function uploadPicture() {
+      alert('Uploading picture')
+      //var canvas = document.createElement('canvas')
+      //var video = document.querySelector('#videoElement')
+      //canvas.width = video.videoWidth
+      //canvas.height = video.videoHeight
+      //canvas.getContext('2d').drawImage(video, 0, 0)
+      //var image = canvas.toDataURL('image/png')
+      var pic = document.getElementById('photoElement').files[0]
+      console.log("PIC", pic)
+      //var image = pic.value
+
+      //console.log("IMAGE", image)
+      sendImage(pic)
+      // fetch(image)
+      //   .then((res) => res.blob())
+      //   .then((blob) => {
+      //     console.log(blob)
+      //     sendImage(blob)
+      //   })
+      //   .catch((error) => {
+      //     console.error('Error:', error)
+      //   })
+      // const fileBlob = await(fetch(data).then(r => r.blob()));
+    }
+
+    function initVideoCapture () {
+      document.getElementById('capture').addEventListener('click', uploadPicture, false)
+      var video = document.querySelector('#videoElement')
+
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({ video: true, audio: false })
+          .then(function (stream) {
+            video.srcObject = stream
+          })
+          .catch(function (error) {
+            alert('Something went wrong!')
+          })
+      }
+    }
+    window.addEventListener('load', function() {
+      initVideoCapture()
+    })
+
+  </script>
+{% endblock %}
