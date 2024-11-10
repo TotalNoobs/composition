@@ -7,6 +7,7 @@ import { ThemedView } from '@/components/ThemedView';
 import CameraScreen from '@/components/CameraScreen';
 import EditScreen from '@/app/EditScreen';
 import MapScreen from '@/app/MapScreen';
+import Success from '@/components/Success'
 
 import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -22,6 +23,7 @@ function HomeScreen({navigation}) {
         <Button title="Upload new map" onPress={() => console.log("Button 1 pressed")}/>
         <Button title="Load map" onPress={() => console.log("Load map.")}/>
         <Button title="Scan" onPress={() => navigation.navigate("Camera")}/>
+        <Button title="Map" onPress={() => navigation.navigate("MapScreen")}/>
     </ThemedView>
   );
 }
@@ -38,6 +40,7 @@ const Stack = () => (
       <RootStack.Screen name="Camera" component={CameraScreen} />
       <RootStack.Screen name="EditScreen" component={EditScreen} />
       <RootStack.Screen name="MapScreen" component={MapScreen} />
+      <RootStack.Screen name="Success" component={Success} />
     </RootStack.Navigator>
 );
 

@@ -1,0 +1,257 @@
+{% block title %}
+  Map
+{% endblock %}
+
+
+{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Floor Plan Editor with JSON Save/Load</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        #pdf-container {
+            position: relative;
+            width: 60vw;
+            height: 80vh;
+            overflow: hidden;
+            border: 1px solid black;
+        }
+        #pdf-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        .point {
+            position: absolute;
+            background: red;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #zoom-controls, #file-controls {
+            margin: 10px;
+        }
+        /* Modal styling */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            width: 300px;
+            z-index: 1000;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        #modal h2 {
+            margin-top: 0;
+        }
+        .modal-input {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .modal-button {
+            width: 48%;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #save-button {
+            background-color: #28a745;
+            color: white;
+        }
+        #cancel-button {
+            background-color: #dc3545;
+            color: white;
+        }
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+
+<div id="file-controls">
+    <button onclick="saveAsJSON()">Save as JSON</button>
+    <input type="file" id="json-upload" accept=".json" style="display:none;" onchange="loadFromJSON(event)">
+    <button onclick="document.getElementById('json-upload').click()">Load JSON</button>
+</div>
+<h1>Map</h1>
+<div id="pdf-container">
+    <canvas id="pdf-canvas"></canvas>
+</div>
+
+<!-- Modal for point details -->
+<div id="modal">
+    <h2>Point Details</h2>
+    <input id="point-name" class="modal-input" type="text" placeholder="Name">
+    <textarea id="point-description" class="modal-input" rows="4" placeholder="Description"></textarea>
+    <div style="display: flex; justify-content: space-between;">
+        <button id="save-button" class="modal-button">Save</button>
+        <button id="cancel-button" class="modal-button">Cancel</button>
+    </div>
+</div>
+
+<div id="overlay"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+
+<script>
+    const url = '../../static/pdf_plans/MKH-MKH.pdf';
+    const canvas = document.getElementById('pdf-canvas');
+    const context = canvas.getContext('2d');
+    const container = document.getElementById('pdf-container');
+    const modal = document.getElementById('modal');
+    const overlay = document.getElementById('overlay');
+    let points = [];
+    let pdfDoc = null;
+    let currentScale = 1;
+    let activePoint = null;
+
+    pdfjsLib.getDocument(url).promise.then(pdf => {
+        pdfDoc = pdf;
+        renderPage(1);
+    }).catch(error => {
+        console.error("Error loading PDF:", error);
+    });
+
+    function renderPage(pageNumber) {
+        pdfDoc.getPage(pageNumber).then(page => {
+            const viewport = page.getViewport({ scale: currentScale });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const renderContext = { canvasContext: context, viewport };
+            
+            page.render(renderContext).promise.then(() => {
+                renderPoints();
+            });
+        });
+    }
+
+
+    canvas.addEventListener('click', function(event) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / currentScale;
+        const y = (event.clientY - rect.top) / currentScale;
+
+        const point = document.createElement('div');
+        point.className = 'point';
+        point.dataset.x = x;
+        point.dataset.y = y;
+
+        container.appendChild(point);
+        points.push({ x, y, element: point, name: '', description: '' });
+
+        point.addEventListener('click', function(event) {
+            event.stopPropagation();
+            openModal(point);
+        });
+
+        renderPoints();
+    });
+
+    function openModal(pointElement) {
+        activePoint = points.find(p => p.element === pointElement);
+        document.getElementById('point-name').value = activePoint.name || '';
+        document.getElementById('point-description').value = activePoint.description || '';
+        
+        modal.style.display = 'block';
+        overlay.style.display = 'block';
+    }
+
+    document.getElementById('save-button').addEventListener('click', function() {
+        activePoint.name = document.getElementById('point-name').value;
+        activePoint.description = document.getElementById('point-description').value;
+        closeModal();
+    });
+
+    document.getElementById('cancel-button').addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
+
+    function closeModal() {
+        modal.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+
+    // Save points to a JSON file
+    function saveAsJSON() {
+        const pointsData = points.map(p => ({ x: p.x, y: p.y, name: p.name, description: p.description }));
+        const blob = new Blob([JSON.stringify(pointsData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'points-data.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // Load points from a JSON file
+    function loadFromJSON(event) {
+        if (!event) {
+            const file = './points-data.json'
+        }
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                points.forEach(p => p.element.remove());
+                points = [];
+                const pointsData = JSON.parse(e.target.result);
+                pointsData.forEach(({ x, y, name, description }) => {
+                    const point = document.createElement('div');
+                    point.className = 'point';
+                    point.dataset.x = x;
+                    point.dataset.y = y;
+                    container.appendChild(point);
+                    points.push({ x, y, element: point, name, description });
+                    point.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                        openModal(point);
+                    });
+                });
+                renderPoints();
+            };
+            reader.readAsText(file);
+        }
+    }
+
+    function renderPoints() {
+        points.forEach(({ x, y, element }) => {
+            const scaledX = x * currentScale;
+            const scaledY = y * currentScale;
+            element.style.left = `${scaledX - 5}px`;
+            element.style.top = `${scaledY - 5}px`;
+            element.style.display = (scaledX >= 0 && scaledY >= 0 && scaledX <= canvas.width && scaledY <= canvas.height) ? 'block' : 'none';
+        });
+    }
+</script>
+
+</body>
+</html>
+
+{% endblock %}
